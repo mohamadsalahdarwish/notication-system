@@ -497,9 +497,7 @@ WebSocket allows real-time communication between the client and server, while Ka
     public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         @Override
         public void configureMessageBroker(MessageBrokerRegistry config) {
-            config.enableStompBrokerRelay("/topic
-
-")
+            config.enableStompBrokerRelay("/topic")
                   .setRelayHost("kafka")
                   .setRelayPort(9092);
             config.setApplicationDestinationPrefixes("/app");
