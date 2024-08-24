@@ -202,9 +202,7 @@ In this tutorial, we'll build a real-time notification system using Spring Boot 
     public class Notification {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long
-
- id;
+        private Long id;
         private Long userId;
         private String message;
         // Getters and Setters
