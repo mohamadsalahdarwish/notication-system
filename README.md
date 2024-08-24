@@ -1004,6 +1004,3 @@ Service, private router: Router) { }
 ## **Conclusion**
 
 This detailed guide covered the complete setup for building a real-time notification system using Spring Boot and Angular, integrated with Kafka, Redis, and Docker. This architecture is suitable for scalable and robust applications requiring real-time features and secure user management.
-
-
-Feel free to use this guide as a reference, experiment with the code, and customize the implementation to suit your specific needs. If you encounter any issues or have further questions, don’t hesitate to reach out!
