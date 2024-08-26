@@ -2,7 +2,7 @@
 
 ## **Introduction**
 
-In this tutorial, we'll build a real-time notification system using Spring Boot for the backend and Angular for the frontend. The backend will handle user authentication and authorization, while Kafka will manage real-time messaging. Redis will handle session management, and Docker will orchestrate the entire stack. We'll be using Kafka Connect  to capture database changes and stream them into Kafka topics.
+In this Demo, we'll build a real-time notification system using Spring Boot for the backend and Angular for the frontend. The backend will handle user authentication and authorization, while Kafka will manage real-time messaging. Redis will handle session management, and Docker will orchestrate the entire stack. We'll be using Kafka Connect  to capture database changes and stream them into Kafka topics.
 
 ## **Technologies Used**
 
