@@ -1,0 +1,29 @@
+{
+  "exchanges": [
+    {
+      "name": "notificationsExchange",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "notificationQueue",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "notificationsExchange",
+      "destination": "notificationQueue",
+      "destination_type": "queue",
+      "routing_key": "notificationRoutingKey",
+      "arguments": {}
+    }
+  ]
+}

@@ -11,32 +11,39 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Value("${spring.rabbitmq.stomp.host}")
+    @Value("${spring.messaging.stomp.relay.host}")
     private String rabbitMQHost;
 
-    @Value("${spring.rabbitmq.stomp.port}")
+    @Value("${spring.messaging.stomp.relay.port}")
     private int rabbitMQPort;
 
-    @Value("${spring.rabbitmq.stomp.username}")
+    @Value("${spring.rabbitmq.username}")
     private String rabbitMQUsername;
 
-    @Value("${spring.rabbitmq.stomp.password}")
+    @Value("${spring.rabbitmq.password}")
     private String rabbitMQPassword;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableStompBrokerRelay("/topic", "/queue")
-                .setRelayHost(rabbitMQHost)
-                .setRelayPort(rabbitMQPort)
-                .setClientLogin(rabbitMQUsername)
+        // Configures the message broker for STOMP
+        config.enableStompBrokerRelay("/topic", "/queue") // Enables a relay for the STOMP broker to RabbitMQ
+                .setRelayHost(rabbitMQHost) // RabbitMQ host where the broker is running
+                .setRelayPort(rabbitMQPort) // Port on which RabbitMQ listens for STOMP messages
+                .setClientLogin(rabbitMQUsername) // Credentials for connecting to RabbitMQ
                 .setClientPasscode(rabbitMQPassword);
+
+        // Defines the prefix for destinations that are handled by application-specific controllers
         config.setApplicationDestinationPrefixes("/app");
+
+        // Defines the prefix for destinations targeting specific users (used for one-to-one messaging)
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOrigins("*")
-                .withSockJS();
+        // Registers the WebSocket endpoint that clients will use to connect
+        registry.addEndpoint("/ws") // The URL path where WebSocket clients will connect
+                .setAllowedOrigins("*") // Allows connections from any origin (for development; restrict in production)
+                .withSockJS(); // Enables fallback options for browsers that do not support WebSocket
     }
 }

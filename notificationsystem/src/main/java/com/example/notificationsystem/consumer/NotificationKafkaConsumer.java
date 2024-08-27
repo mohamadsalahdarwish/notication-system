@@ -1,9 +1,12 @@
 package com.example.notificationsystem.consumer;
 
 import com.example.notificationsystem.entity.Notification;
+import com.example.notificationsystem.entity.NotificationDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,25 +22,32 @@ public class NotificationKafkaConsumer {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+
     @Autowired
-    private AmqpTemplate amqpTemplate; // RabbitMQ template to send messages
+    private RabbitTemplate rabbitTemplate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @KafkaListener(topics = "db-notifications.public.notifications")
-    public void consume(String message) {
+    public void consume(String message) throws JsonProcessingException {
         // Assume message contains userId and notification details
         logger.info("Received message from Kafka: {}", message);
 
-        Notification notification = null; // Implement your parsing logic
-        try {
-            notification = parseMessage(message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        JsonNode root = objectMapper.readTree(message);
+
+        JsonNode afterNode = root.path("payload").path("after");
+
+        NotificationDto notificationDto = null;
+        if (!afterNode.isMissingNode()) {
+            notificationDto = objectMapper.treeToValue(afterNode, NotificationDto.class);
+            logger.info("Received Notification: {}" , notificationDto.getMessage());
         }
 
+
         // Check if user is logged in
-        if (isUserLoggedIn(notification.getId())) {
+        if (true){///isUserLoggedIn(notification.getId())) {
             // Send the message to RabbitMQ
-            sendToRabbitMQ(notification);
+            sendToRabbitMQ(notificationDto);
         }
     }
 
@@ -46,9 +56,10 @@ public class NotificationKafkaConsumer {
         return redisTemplate.opsForSet().isMember("loggedInUsers", userId.toString());
     }
 
-    private void sendToRabbitMQ(Notification notification) {
-        // Send the notification to RabbitMQ
-        amqpTemplate.convertAndSend("notificationsExchange", "notificationRoutingKey", notification);
+
+    public void sendToRabbitMQ(NotificationDto notification) {
+        // Converts and sends the NotificationDto to the "notificationsExchange" with the routing key "notificationRoutingKey"
+        rabbitTemplate.convertAndSend("notificationsExchange", "notificationRoutingKey", notification);
     }
 
     private Notification parseMessage(String message) throws JsonProcessingException {

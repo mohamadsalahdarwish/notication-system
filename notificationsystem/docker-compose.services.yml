@@ -88,42 +88,22 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
+      - "5672:5672"
       - "15672:15672"   # Management UI port
       - "61613:61613"   # STOMP protocol port
+    volumes:
+      - ./rabbit/rabbitmq-init:/etc/rabbitmq/definitions
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFINITIONS_FILE: /etc/rabbitmq/definitions/rabbitmq_definitions.json
     command: >
       sh -c "rabbitmq-plugins enable rabbitmq_stomp &&
              rabbitmq-server"
     networks:
       - kafka_network
 
-  notification-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: notification-app
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notificationdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - kafka
-      - kafka-connect
-    networks:
-      - kafka_network
-
 volumes:
   postgres-data:
   redis-data:
+  rabbitmq:
