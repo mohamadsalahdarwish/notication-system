@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -44,6 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Registers the WebSocket endpoint that clients will use to connect
         registry.addEndpoint("/ws") // The URL path where WebSocket clients will connect
                 .setAllowedOrigins("*") // Allows connections from any origin (for development; restrict in production)
-                .withSockJS(); // Enables fallback options for browsers that do not support WebSocket
+                .withSockJS() // Enables fallback options for browsers that do not support WebSocket
+                .setInterceptors(new HttpSessionHandshakeInterceptor()); // Interceptor to manage authenticatio
     }
 }
