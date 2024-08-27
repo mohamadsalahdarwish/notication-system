@@ -1,5 +1,7 @@
 package com.example.notificationsystem.controller;
 
+import com.example.notificationsystem.dto.request.UserRegistrationRequest;
+import com.example.notificationsystem.entity.User;
 import com.example.notificationsystem.model.AuthenticationRequest;
 import com.example.notificationsystem.model.AuthenticationResponse;
 import com.example.notificationsystem.security.JwtUtil;
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,17 +30,32 @@ public class JwtAuthenticationController {
     private final JwtUtil jwtTokenUtil;
     private final CustomUserDetailsService userDetailsService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public JwtAuthenticationController(
             AuthenticationManager authenticationManager,
             JwtUtil jwtTokenUtil,
             CustomUserDetailsService userDetailsService,
-            RedisTemplate<String, Object> redisTemplate) {
+            RedisTemplate<String, Object> redisTemplate,
+            PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDetailsService = userDetailsService;
         this.redisTemplate = redisTemplate;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody UserRegistrationRequest request) {
+        if (userDetailsService.userExists(request.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already taken.");
+        }
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userDetailsService.saveUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully.");
     }
 
     @PostMapping("/login")
@@ -85,4 +103,3 @@ public class JwtAuthenticationController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 }
-

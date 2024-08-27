@@ -1,22 +1,23 @@
 package com.example.notificationsystem.security;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-
 @Service
 public class JwtUtil {
 
-    private String secret = "your_jwt_secret_key";  // Use a more secure secret in production
+    // Generate a secure key for HS256
+    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     // Generate token for user
     public String generateToken(UserDetails userDetails) {
@@ -31,7 +32,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))  // 10 hours validity
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(key)  // Use the secure key generated
                 .compact();
     }
 
@@ -64,7 +65,10 @@ public class JwtUtil {
 
     // Extract all claims from token
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(key)  // Use the secure key for parsing
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
-

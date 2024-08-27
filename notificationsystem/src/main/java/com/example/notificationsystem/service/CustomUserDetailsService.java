@@ -27,5 +27,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .collect(Collectors.toList())
         );
     }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
+    public boolean userExists(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
 }
 
