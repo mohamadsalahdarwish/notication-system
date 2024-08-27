@@ -49,10 +49,5 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 -- Insert test records into the notifications table with explicit created_at values
 INSERT INTO notifications (user_id, message, created_at)
 VALUES
-    (1, 'Your order has been shipped.', CURRENT_TIMESTAMP),
-    (1, 'Your password has been changed successfully.', CURRENT_TIMESTAMP),
-    (1, 'Your account has been locked due to multiple failed login attempts.', CURRENT_TIMESTAMP),
-    (2, 'New login from an unknown device detected.', CURRENT_TIMESTAMP),
-    (2, 'Your subscription has been renewed.', CURRENT_TIMESTAMP),
-    (2, 'You have a new message from support.', CURRENT_TIMESTAMP);
+    (7, 'You have a new message from support.', CURRENT_TIMESTAMP);
 

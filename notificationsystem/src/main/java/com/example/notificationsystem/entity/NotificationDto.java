@@ -1,13 +1,22 @@
 package com.example.notificationsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NotificationDto {
+
+    @JsonProperty("id")
     private long id;
+
+    @JsonProperty("created_at")
     private long createdAt;
+
+    @JsonProperty("message")
     private String message;
-    private long userId;
+
+    @JsonProperty("user_id")
+    private long user_Id;
 
     public long getId() {
         return id;
@@ -34,10 +43,10 @@ public class NotificationDto {
     }
 
     public long getUserId() {
-        return userId;
+        return user_Id;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setUserId(long user_Id) {
+        this.user_Id = user_Id;
     }
 }

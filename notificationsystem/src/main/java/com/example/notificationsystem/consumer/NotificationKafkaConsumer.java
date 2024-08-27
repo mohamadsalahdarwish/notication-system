@@ -2,10 +2,11 @@ package com.example.notificationsystem.consumer;
 
 import com.example.notificationsystem.entity.Notification;
 import com.example.notificationsystem.entity.NotificationDto;
+import com.example.notificationsystem.entity.User;
+import com.example.notificationsystem.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,6 +23,8 @@ public class NotificationKafkaConsumer {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -42,18 +45,20 @@ public class NotificationKafkaConsumer {
             notificationDto = objectMapper.treeToValue(afterNode, NotificationDto.class);
             logger.info("Received Notification: {}" , notificationDto.getMessage());
         }
+        logger.info("User Id: {}", notificationDto.getUserId());
 
+        User user = userRepository.findById(notificationDto.getUserId()).orElse(null);
 
         // Check if user is logged in
-        if (true){///isUserLoggedIn(notification.getId())) {
+        if (isUserLoggedIn(user.getUsername())) {
             // Send the message to RabbitMQ
             sendToRabbitMQ(notificationDto);
         }
     }
 
-    private boolean isUserLoggedIn(Long userId) {
+    private boolean isUserLoggedIn(String username) {
         // Check if the user is logged in via Redis
-        return redisTemplate.opsForSet().isMember("loggedInUsers", userId.toString());
+        return redisTemplate.opsForSet().isMember("loggedInUsers", username);
     }
 
 
