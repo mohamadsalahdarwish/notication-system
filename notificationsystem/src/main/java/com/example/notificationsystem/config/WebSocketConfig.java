@@ -1,5 +1,7 @@
 package com.example.notificationsystem.config;
 
+import com.example.notificationsystem.security.JwtHandshakeInterceptor;
+import com.example.notificationsystem.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -24,6 +26,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${spring.rabbitmq.password}")
     private String rabbitMQPassword;
 
+    private final JwtUtil jwtUtil;
+
+    public WebSocketConfig(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Configures the message broker for STOMP
@@ -42,10 +50,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Registers the WebSocket endpoint that clients will use to connect
-        registry.addEndpoint("/ws") // The URL path where WebSocket clients will connect
-                .setAllowedOrigins("*") // Allows connections from any origin (for development; restrict in production)
-                .withSockJS() // Enables fallback options for browsers that do not support WebSocket
-                .setInterceptors(new HttpSessionHandshakeInterceptor()); // Interceptor to manage authenticatio
+        registry.addEndpoint("/ws")
+                .setAllowedOrigins("http://localhost:4200")
+                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))  // Enable JWT validation in handshake
+                .withSockJS();
     }
 }

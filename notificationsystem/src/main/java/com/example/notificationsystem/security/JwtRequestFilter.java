@@ -1,3 +1,4 @@
+// JwtRequestFilter.java
 package com.example.notificationsystem.security;
 
 import com.example.notificationsystem.service.CustomUserDetailsService;
@@ -41,6 +42,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 System.out.println("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
                 System.out.println("JWT Token has expired");
+            } catch (Exception e) {
+                System.out.println("JWT Token is invalid");
             }
         }
 
@@ -57,4 +60,3 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 }
-
