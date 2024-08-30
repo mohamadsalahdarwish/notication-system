@@ -49,4 +49,14 @@ public class NotificationDto {
     public void setUserId(long user_Id) {
         this.user_Id = user_Id;
     }
+
+    @Override
+    public String toString() {
+        return "NotificationDto{" +
+                "id=" + id +
+                ", createdAt=" + createdAt +
+                ", message='" + message + '\'' +
+                ", userId=" + user_Id +
+                '}';
+    }
 }
