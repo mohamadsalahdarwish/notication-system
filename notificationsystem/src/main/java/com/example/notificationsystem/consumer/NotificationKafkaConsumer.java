@@ -2,7 +2,9 @@ package com.example.notificationsystem.consumer;
 
 import com.example.notificationsystem.entity.Notification;
 import com.example.notificationsystem.entity.NotificationDto;
+import com.example.notificationsystem.entity.TempNotification;
 import com.example.notificationsystem.entity.User;
+import com.example.notificationsystem.repository.TempNotificationRepository;
 import com.example.notificationsystem.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,6 +31,10 @@ public class NotificationKafkaConsumer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private TempNotificationRepository tempNotificationRepository;
+
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @KafkaListener(topics = "db-notifications.public.notifications")
@@ -47,12 +53,15 @@ public class NotificationKafkaConsumer {
         }
         logger.info("User Id: {}", notificationDto.getUserId());
 
+
         User user = userRepository.findById(notificationDto.getUserId()).orElse(null);
 
         // Check if user is logged in
         if (isUserLoggedIn(user.getUsername())) {
             // Send the message to RabbitMQ
             sendToRabbitMQ(notificationDto);
+        }else {
+            saveToTempTable(notificationDto, user != null ? user.getUsername() : null);
         }
     }
 
@@ -71,5 +80,14 @@ public class NotificationKafkaConsumer {
         // Parse the Kafka message to Notification object (assumed to be JSON in this case)
         // Implement your logic here to map message to Notification object
         return new ObjectMapper().readValue(message, Notification.class);
+    }
+
+    private void saveToTempTable(NotificationDto notification, String username) {
+        TempNotification tempNotification = new TempNotification();
+        tempNotification.setUserId(notification.getUserId());
+        tempNotification.setUsername(username);
+        tempNotification.setMessage(notification.getMessage());
+        tempNotificationRepository.save(tempNotification);
+        logger.info("Notification saved to temp table for user: {}", notification.getUserId());
     }
 }

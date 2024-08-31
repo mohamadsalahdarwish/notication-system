@@ -1,5 +1,8 @@
 package com.example.notificationsystem.config;
 
+import com.example.notificationsystem.consumer.NotificationKafkaConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -12,11 +15,9 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Component
 public class WebSocketEventListener {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
 
-    @Autowired
-    public WebSocketEventListener(SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    public WebSocketEventListener() {
     }
 
     @EventListener
@@ -28,7 +29,7 @@ public class WebSocketEventListener {
             String username = authentication.getName(); // Extract username from the authentication object
 
             if (username != null) {
-                messagingTemplate.convertAndSendToUser(username, "/queue/notifications","Welcome message");
+                logger.info("User connected: {}" , username);
             }
         }
     }

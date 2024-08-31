@@ -1,9 +1,12 @@
 package com.example.notificationsystem.controller;
 
 import com.example.notificationsystem.dto.request.UserRegistrationRequest;
+import com.example.notificationsystem.entity.NotificationDto;
+import com.example.notificationsystem.entity.TempNotification;
 import com.example.notificationsystem.entity.User;
 import com.example.notificationsystem.model.AuthenticationRequest;
 import com.example.notificationsystem.model.AuthenticationResponse;
+import com.example.notificationsystem.repository.TempNotificationRepository;
 import com.example.notificationsystem.security.JwtUtil;
 import com.example.notificationsystem.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,16 +14,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,6 +35,7 @@ public class JwtAuthenticationController {
     private final CustomUserDetailsService userDetailsService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final TempNotificationRepository tempNotificationRepository;
 
     @Autowired
     public JwtAuthenticationController(
@@ -38,12 +43,14 @@ public class JwtAuthenticationController {
             JwtUtil jwtTokenUtil,
             CustomUserDetailsService userDetailsService,
             RedisTemplate<String, Object> redisTemplate,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            TempNotificationRepository tempNotificationRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDetailsService = userDetailsService;
         this.redisTemplate = redisTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.tempNotificationRepository = tempNotificationRepository;
     }
 
     @PostMapping("/register")
@@ -65,6 +72,12 @@ public class JwtAuthenticationController {
         final String jwt = jwtTokenUtil.generateToken(userDetails);
         redisTemplate.opsForSet().add("loggedInUsers", userDetails.getUsername());
         return ResponseEntity.ok(new AuthenticationResponse(jwt));
+    }
+
+    @GetMapping("/notifications/{username}")
+    public ResponseEntity<List<NotificationDto>> getTempNotifications(@PathVariable String username) {
+        List<NotificationDto> notifications = fetchAndDeleteTempNotifications(username);
+        return ResponseEntity.ok(notifications);
     }
 
     @PostMapping("/logout")
@@ -96,6 +109,22 @@ public class JwtAuthenticationController {
             return jwtTokenUtil.extractUsername(jwt);
         }
         return null;
+    }
+    @Transactional
+    public List<NotificationDto> fetchAndDeleteTempNotifications(String username) {
+        List<TempNotification> tempNotifications = tempNotificationRepository.findByUsername(username);
+        List<NotificationDto> notificationDtos = tempNotifications.stream()
+                .map(this::toNotificationDto)
+                .collect(Collectors.toList());
+        tempNotificationRepository.deleteAll(tempNotifications);
+        return notificationDtos;
+    }
+
+    private NotificationDto toNotificationDto(TempNotification tempNotification) {
+        NotificationDto notificationDto = new NotificationDto();
+        notificationDto.setUserId(tempNotification.getUserId());
+        notificationDto.setMessage(tempNotification.getMessage());
+        return notificationDto;
     }
 
     @ExceptionHandler(BadCredentialsException.class)
