@@ -1,0 +1,253 @@
+{
+	"info": {
+		"_postman_id": "ab023fbe-cb0e-48d8-9752-f5992c9df29d",
+		"name": "Notification System Testing",
+		"description": "This collection tests the notification system, including authentication, registration, WebSocket connections, and message flows.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3034627"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete specific connector Copy",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{kafkaConnectUrl}}/connectors/:connector-name",
+							"host": [
+								"{{kafkaConnectUrl}}"
+							],
+							"path": [
+								"connectors",
+								":connector-name"
+							],
+							"variable": [
+								{
+									"key": "connector-name",
+									"value": "sink-person-address-postgresql-schema-registry"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PostgreSQL CDC - Notification Copy",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"source-cdc-notifications\",\r\n    \"config\": {\r\n        \"connector.class\": \"io.debezium.connector.postgresql.PostgresConnector\",\r\n        \"bootstrap.servers\": \"kafka:9092\",\r\n        \"database.hostname\": \"postgres\",\r\n        \"database.port\": \"5432\",\r\n        \"database.user\": \"postgres\",\r\n        \"database.password\": \"postgres\",\r\n        \"database.dbname\": \"notificationdb\",\r\n        \"table.include.list\": \"public.notifications\", \r\n        \"database.server.name\": \"cdc-notifications\",\r\n        \"plugin.name\": \"pgoutput\",\r\n        \"tombstones.on.delete\": true,\r\n        \"time.precision.mode\": \"connect\",\r\n        \"slot.name\": \"debezium_notifications\",\r\n        \"topic.prefix\": \"db-notifications\"\r\n    }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{kafkaConnectUrl}}/connectors",
+							"host": [
+								"{{kafkaConnectUrl}}"
+							],
+							"path": [
+								"connectors"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "WebSocket",
+			"item": [
+				{
+					"name": "WebSocket Connect",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://{{base_url}}/ws",
+							"protocol": "ws",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ws"
+							]
+						},
+						"description": "Establish WebSocket connection"
+					},
+					"response": []
+				},
+				{
+					"name": "Subscribe to User Queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://{{base_url}}/user/{{userId}}/queue/notifications",
+							"protocol": "ws",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user",
+								"{{userId}}",
+								"queue",
+								"notifications"
+							]
+						},
+						"description": "Subscribe to the user's notification queue"
+					},
+					"response": []
+				},
+				{
+					"name": "Subscribe to Notifications Topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://{{base_url}}/topic/notifications",
+							"protocol": "ws",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"topic",
+								"notifications"
+							]
+						},
+						"description": "Subscribe to the general notifications topic"
+					},
+					"response": []
+				},
+				{
+					"name": "Send Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"Test notification message\""
+						},
+						"url": {
+							"raw": "{{base_url}}/app/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"app",
+								"send"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "localhost:8080",
+			"value": "base_url"
+		},
+		{
+			"key": "base_url",
+			"value": "localhost:8080"
+		},
+		{
+			"key": "userId",
+			"value": "7"
+		}
+	]
+}
