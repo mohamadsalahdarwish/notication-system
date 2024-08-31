@@ -51,3 +51,8 @@ INSERT INTO notifications (user_id, message, created_at)
 VALUES
     (1, 'You have a new message from support3.', CURRENT_TIMESTAMP);
 
+
+INSERT INTO notifications (user_id, message, created_at)
+VALUES
+    (2, 'You have a new message from support4.', CURRENT_TIMESTAMP);
+
