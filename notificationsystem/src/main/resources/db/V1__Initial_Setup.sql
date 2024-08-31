@@ -49,5 +49,5 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 -- Insert test records into the notifications table with explicit created_at values
 INSERT INTO notifications (user_id, message, created_at)
 VALUES
-    (1, 'You have a new message from support2.', CURRENT_TIMESTAMP);
+    (1, 'You have a new message from support3.', CURRENT_TIMESTAMP);
 

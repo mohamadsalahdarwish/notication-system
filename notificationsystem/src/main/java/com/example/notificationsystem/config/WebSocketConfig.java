@@ -39,7 +39,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setRelayHost(rabbitMQHost) // RabbitMQ host where the broker is running
                 .setRelayPort(rabbitMQPort) // Port on which RabbitMQ listens for STOMP messages
                 .setClientLogin(rabbitMQUsername) // Credentials for connecting to RabbitMQ
-                .setClientPasscode(rabbitMQPassword);
+                .setClientPasscode(rabbitMQPassword)// Credentials for connecting to RabbitMQ
+                .setSystemHeartbeatReceiveInterval(10000) // Increased interval to reduce connection drops
+                .setSystemHeartbeatSendInterval(10000);  // Increased interval to reduce connection drops
+
 
         // Defines the prefix for destinations that are handled by application-specific controllers
         config.setApplicationDestinationPrefixes("/app");

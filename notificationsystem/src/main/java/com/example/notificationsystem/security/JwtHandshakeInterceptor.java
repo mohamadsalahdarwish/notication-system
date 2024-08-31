@@ -1,6 +1,5 @@
 package com.example.notificationsystem.security;
 
-import com.example.notificationsystem.consumer.NotificationKafkaConsumer;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
@@ -8,9 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
@@ -30,7 +32,10 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         String token = null;
 
         if (query != null && query.contains("Authorization=Bearer ")) {
-            token = query.split("Authorization=Bearer ")[1];
+            String[] parts = query.split("Authorization=Bearer ");
+            if (parts.length > 1) {
+                token = parts[1];
+            }
         }
 
         logger.info("Token: {}", token);
@@ -39,8 +44,11 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             try {
                 Claims claims = jwtUtil.extractAllClaims(token);
                 if (!jwtUtil.isTokenExpired(token)) {
-                    // Token is valid, proceed with the WebSocket handshake
+                    logger.info("username: {}", claims.getSubject());
                     attributes.put("username", claims.getSubject());
+                    SecurityContextHolder.getContext().setAuthentication(
+                            new UsernamePasswordAuthenticationToken(claims.getSubject(), null, new ArrayList<>())
+                    );
                     return true;
                 }
             } catch (JwtException e) {
@@ -59,4 +67,3 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         // No-op
     }
 }
-
