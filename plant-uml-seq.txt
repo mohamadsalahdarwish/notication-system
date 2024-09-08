@@ -1,20 +1,21 @@
 @startuml
 !theme aws-orange
 participant User
-participant WebSocketClient as WSClient
-participant SpringBootApp as App
+participant "WebSocket Client" as WSClient
+participant "Spring Boot Application" as App
 participant Kafka
 participant Debezium
-participant Database as DB
+participant "Database" as DB
 participant Redis
-participant RabbitMQ
+participant "RabbitMQ Queue" as RabbitMQQueue
+participant "RabbitMQ Broker" as RabbitMQBroker
 
 User -> WSClient: User logs in
 WSClient -> App: Establish WebSocket connection
 App -> Redis: Save user session in Redis
 Redis --> App: Session saved
 
-App -> RabbitMQ: Subscribe to WebSocket topic
+App -> RabbitMQBroker: Subscribe to WebSocket topic
 
 alt User has unread notifications in DB
     User -> WSClient: Request unread notifications
@@ -33,8 +34,9 @@ App -> Redis: Check if user is logged in
 Redis --> App: Return user session status
 
 alt User is logged in
-    App -> RabbitMQ: Send notification via WebSocket (STOMP)
-    RabbitMQ -> WSClient: Deliver real-time notification to user
+    App -> RabbitMQQueue: Send notification to RabbitMQ exchange
+    RabbitMQQueue -> RabbitMQBroker: Send notification via WebSocket (STOMP)
+    RabbitMQBroker -> WSClient: Deliver real-time notification to user
 else User is not logged in
     App -> DB: Save notification to database
 end
