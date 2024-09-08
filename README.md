@@ -2,6 +2,7 @@
 # Real-Time Notification System
 
 This project is a real-time notification system built using Spring Boot, Kafka, Debezium, Redis, RabbitMQ, and WebSocket with the STOMP protocol. It captures database changes, processes notifications, and delivers them to users in real-time.
+![Architecture Diagram](SEQ.png)
 
 ## Table of Contents
 
